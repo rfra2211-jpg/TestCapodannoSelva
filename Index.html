@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capodanno a Selva Sopra 🏔️🎆</title>
+    <style>
+        :root {
+            --bg-glass: rgba(20, 25, 35, 0.75);
+            --border-glass: rgba(255, 255, 255, 0.18);
+            --gold: #f39c12;
+            --gold-hover: #d35400;
+            --red: #e74c3c;
+            --text-light: #ecf0f1;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+        body {
+            background: linear-gradient(rgba(10, 15, 25, 0.65), rgba(10, 15, 25, 0.75)),
+                        url('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=1920&q=80') center/cover fixed no-repeat;
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding-bottom: 50px;
+        }
+
+        #snow-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; position: relative; z-index: 2; }
+
+        .header {
+            text-align: center;
+            padding: 40px 20px 20px 20px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-glass);
+            border-radius: 20px;
+            margin-top: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .header h1 { font-size: 2.5rem; color: #fff; text-shadow: 0 0 10px rgba(243, 156, 18, 0.5); margin-bottom: 10px; }
+        .header p { font-size: 1.2rem; color: #bdc3c7; }
+
+        .countdown-container { background: rgba(0, 0, 0, 0.4); border-radius: 15px; padding: 20px; margin-top: 20px; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .countdown-title { font-size: 0.9rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+        .timer { display: flex; justify-content: center; gap: 15px; }
+        .time-block { display: flex; flex-direction: column; align-items: center; }
+        .time-block span:first-child { font-size: 2rem; font-weight: bold; color: #fff; }
+        .time-block span:last-child { font-size: 0.75rem; color: #95a5a6; text-transform: uppercase; }
+
+        .card {
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-glass);
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 25px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .card h2 { font-size: 1.6rem; color: var(--gold); margin-bottom: 15px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+
+        .highlight-box { background: rgba(231, 76, 60, 0.15); border-left: 4px solid var(--red); padding: 15px; border-radius: 0 10px 10px 0; margin: 15px 0; }
+
+        .rules-list { list-style: none; }
+        .rules-list li { position: relative; padding-left: 30px; margin-bottom: 15px; line-height: 1.5; }
+        .rules-list li::before { content: "⚠️"; position: absolute; left: 0; top: 0; }
+
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-size: 0.95rem; color: #ddd; }
+        input[type="text"], select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-glass); background: rgba(0, 0, 0, 0.5); color: #fff; font-size: 1rem; outline: none; }
+        input[type="text"]:focus, select:focus { border-color: var(--gold); }
+
+        .checkbox-group { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; cursor: pointer; }
+        .checkbox-group input { width: 20px; height: 20px; cursor: pointer; }
+
+        .btn-submit {
+            width: 100%; padding: 15px; background: linear-gradient(45deg, var(--gold), var(--gold-hover)); border: none; border-radius: 10px; color: #fff; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; margin-top: 10px;
+        }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px; text-align: center; }
+        .stat-card { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .stat-card .number { font-size: 1.8rem; font-weight: bold; color: var(--gold); }
+        .stat-card .label { font-size: 0.85rem; color: #aaa; }
+
+        .attendees-list { margin-top: 20px; max-height: 250px; overflow-y: auto; }
+        .attendee-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; }
+        .badge-sober { background: #27ae60; color: #fff; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; }
+
+        @media (max-width: 600px) { .header h1 { font-size: 1.8rem; } .timer { gap: 8px; } .time-block span:first-child { font-size: 1.4rem; } }
+    </style>
+</head>
+<body>
+
+    <canvas id="snow-canvas"></canvas>
+
+    <div class="container">
+        
+        <header class="header">
+            <h1>Capodanno in Baita 🏔️🥂</h1>
+            <p>Selva Sopra, Farini (PC)</p>
+
+            <div class="countdown-container">
+                <div class="countdown-title">Countdown Mezzanotte</div>
+                <div class="timer">
+                    <div class="time-block"><span id="days">00</span><span>Giorni</span></div>
+                    <div class="time-block"><span id="hours">00</span><span>Ore</span></div>
+                    <div class="time-block"><span id="minutes">00</span><span>Minuti</span></div>
+                    <div class="time-block"><span id="seconds">00</span><span>Secondi</span></div>
+                </div>
+            </div>
+        </header>
+
+        <section class="card">
+            <h2>📍 Info & Logistica</h2>
+            <p><strong>La Casa:</strong> Si trova a <strong>Selva Sopra</strong>, una frazione del comune di Farini (Piacenza).</p>
+            <p style="margin-top: 10px;"><strong>Posizione esatta:</strong> Il proprietario di casa (Giorgio) invierà la posizione WhatsApp precisa il giorno <strong>28 Dicembre</strong>, data in cui lui e la sua consorte saliranno in montagna per preparare la casa ed accogliere tutti.</p>
+            <div class="highlight-box">
+                📅 <strong>Apertura Porte:</strong> La casa è aperta a tutti gli invitati dal <strong>30 Dicembre al 2 Gennaio</strong>!
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>🍝 Il Pranzo del 1° Gennaio</h2>
+            <p>Per riprendere le forze dopo i festeggiamenti, il primo giorno dell'anno abbiamo organizzato un pranzo ufficiale:</p>
+            <div class="highlight-box" style="border-left-color: var(--gold); background: rgba(243, 156, 18, 0.15);">
+                <strong>Trattoria "Figoni"</strong> — Montereggio<br>
+                🕒 <strong>Ore 12:30 spaccate del 1° Gennaio</strong><br>
+                <small>Presentarsi pronti a mangiare roba seria e tipica!</small>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>🛏️ Sistemazione Camere</h2>
+            <p>La distribuzione dei posti letto verrà gestita ed inviata direttamente sul gruppo WhatsApp.</p>
+            <p style="margin-top: 10px;"><em>Nota importante:</em> La camera in alto alle scale sulla destra è già rigorosamente <strong>riservata ed occupata dal padrone di casa e dalla sua consorte</strong> (che saliranno già dal 28 Dicembre).</p>
+        </section>
+
+        <section class="card">
+            <h2>📜 Le 4 Regole Ferrate della Casa</h2>
+            <ul class="rules-list">
+                <li><strong>Pulizie finali:</strong> La casa va lasciata esattamente come la si trova (ripulita e riordinata). L'ultimo giorno sarà interamente dedicato alle pulizie generali. <em>Eccezione:</em> Macchie di fluidi corporei o rigetti NON rientrano nelle pulizie generali e saranno ripulite dai diretti interessati che le causeranno.</li>
+                <li><strong>Fascia Oraria No-Sesso:</strong> Non sono ammessi rapporti sessuali dalle ore 09:00 alle ore 21:00 nei giorni dal 30 Dicembre al 02 Gennaio.</li>
+                <li><strong>Turni Domestici:</strong> Le faccende verranno suddivise a turni impari, come è sempre stato: gli uomini si occuperanno al massimo di due faccende nell'intera vacanza.</li>
+                <li><strong>Gestione Bagno:</strong> Ogni turno in bagno ha una durata massima di 10 minuti, a prescindere dalla necessità. Il tempo vola!</li>
+            </ul>
+        </section>
+
+        <section class="card">
+            <h2>✍️ Conferma Partecipazione (RSVP)</h2>
+            <p style="margin-bottom: 15px; color: #bdc3c7;">Compila il modulo qui sotto per inviare direttamente la tua risposta al Foglio Google ufficiale del Capodanno:</p>
+            <button type="button" class="btn-submit" onclick="window.open('https://forms.gle/aHsFtsKbCsbxxKgi7', '_blank')">
+    Conferma la tua Presenza 🚀
+</button>
+            </form>
+
+            <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+
+            <hr style="margin: 25px 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);">
+
+            <h3>📊 Resoconto Partecipanti</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="number" id="totalCount">2</div>
+                    <div class="label">Persone Presenti</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="soberCount">0</div>
+                    <div class="label">Astemi / No Alcol</div>
+                </div>
+            </div>
+
+            <div class="attendees-list" id="attendeesList"></div>
+        </section>
+
+    </div>
+
+    <script>
+        const canvas = document.getElementById('snow-canvas');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        const flakes = Array.from({ length: 60 }, () => ({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            r: Math.random() * 3 + 1,
+            d: Math.random() + 0.5
+        }));
+
+        function drawSnow() {
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.beginPath();
+            flakes.forEach(f => {
+                ctx.moveTo(f.x, f.y);
+                ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+            });
+            ctx.fill();
+            updateSnow();
+        }
+
+        function updateSnow() {
+            flakes.forEach(f => {
+                f.y += f.d * f.d + 1;
+                f.x += Math.sin(f.y / 30);
+                if (f.y > height) {
+                    f.y = -10;
+                    f.x = Math.random() * width;
+                }
+            });
+        }
+
+        setInterval(drawSnow, 30);
+
+        function updateTimer() {
+            const now = new Date();
+            let targetYear = now.getFullYear();
+            let targetDate = new Date(`December 31, ${targetYear} 23:59:59`);
+            
+            if (now > targetDate) {
+                targetYear += 1;
+                targetDate = new Date(`December 31, ${targetYear} 23:59:59`);
+            }
+
+            const diff = targetDate - now;
+
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+            document.getElementById('days').innerText = String(d).padStart(2, '0');
+            document.getElementById('hours').innerText = String(h).padStart(2, '0');
+            document.getElementById('minutes').innerText = String(m).padStart(2, '0');
+            document.getElementById('seconds').innerText = String(s).padStart(2, '0');
+        }
+
+        setInterval(updateTimer, 1000);
+        updateTimer();
+
+        const form = document.getElementById('rsvpForm');
+        const attendeesList = document.getElementById('attendeesList');
+        const totalCountEl = document.getElementById('totalCount');
+        const soberCountEl = document.getElementById('soberCount');
+
+        let defaultAttendees = [
+            { name: "Giorgio (Padrone di casa) & Consorte", arrival: "28 Dicembre", departure: "2 Gennaio", sober: false }
+        ];
+
+        let storedAttendees = JSON.parse(localStorage.getItem('capodanno_attendees')) || [];
+        let attendees = [...defaultAttendees, ...storedAttendees];
+
+        function renderAttendees() {
+            attendeesList.innerHTML = '';
+            let soberCount = 0;
+
+            attendees.forEach((item) => {
+                if (item.sober) soberCount++;
+                const div = document.createElement('div');
+                div.className = 'attendee-item';
+                div.innerHTML = `
+                    <div>
+                        <strong>${item.name}</strong> 
+                        <span style="color: #aaa; font-size: 0.8rem;">(${item.arrival} ➔ ${item.departure})</span>
+                    </div>
+                    <div>
+                        ${item.sober ? '<span class="badge-sober">Astemio 🥤</span>' : ''}
+                    </div>
+                `;
+                attendeesList.appendChild(div);
+            });
+
+            totalCountEl.innerText = attendees.reduce((acc, curr) => acc + (curr.name.includes('&') ? 2 : 1), 0);
+            soberCountEl.innerText = soberCount;
+        }
+
+        function handleFormSubmit(e) {
+            const name = document.getElementById('name').value.trim();
+            const arrival = document.getElementById('arrival').value;
+            const departure = document.getElementById('departure').value;
+            const sober = document.getElementById('sober').checked;
+
+            if (!name) return;
+
+            storedAttendees.push({ name, arrival, departure, sober });
+            localStorage.setItem('capodanno_attendees', JSON.stringify(storedAttendees));
+            attendees = [...defaultAttendees, ...storedAttendees];
+
+            setTimeout(() => {
+                form.reset();
+                renderAttendees();
+                alert('Registrazione completata e registrata nel Foglio Google! Ci vediamo a Selva Sopra! 🎉');
+            }, 500);
+        }
+
+        renderAttendees();
+    </script>
+</body>
+</html>
